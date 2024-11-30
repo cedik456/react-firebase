@@ -1,33 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../config/firebase";
-import { getDocs, collection, addDoc } from "firebase/firestore";
+import { getDocs, collection, addDoc, onSnapshot } from "firebase/firestore";
 
 const Firestore = () => {
   const [movieList, setMovieList] = useState([]);
 
   // Movie
   const [title, setTitle] = useState("");
-  const [releasedDate, setReleasedDate] = useState(0);
+  const [releasedDate, setReleasedDate] = useState("");
   const [receivedOscar, setReceivedOscar] = useState(false);
 
   // Collection
   const movieListCollectionRef = collection(db, "movies");
 
+  // Use Snapshot for realtime data
   useEffect(() => {
-    const getMovieList = async () => {
-      try {
-        const data = await getDocs(movieListCollectionRef);
-        const filteredData = data.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        }));
-        setMovieList(filteredData);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    getMovieList();
+    onSnapshot(movieListCollectionRef, (snapshot) => {
+      const filteredData = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      setMovieList(filteredData);
+    });
   }, []);
 
   const submitMovie = async () => {
@@ -52,11 +46,13 @@ const Firestore = () => {
           type="text"
           className="p-2 mr-3 border rounded"
           placeholder="Movie Title..."
+          value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <input
           type="number"
           className="p-2 mr-3 border rounded"
+          value={releasedDate}
           placeholder="Released Date..."
           onChange={(e) => setReleasedDate(Number(e.target.value))}
         />
@@ -64,6 +60,7 @@ const Firestore = () => {
         <input
           type="checkbox"
           className="p-2 mr-3"
+          value={receivedOscar}
           checked={receivedOscar}
           onChange={(e) => setReceivedOscar(e.target.checked)}
         />

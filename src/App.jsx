@@ -1,9 +1,10 @@
-import Hero from "./Hero";
+import Auth from "./components/Auth";
+import Hero from "./components/Hero";
 
 function App() {
   return (
     <>
-      <Hero />
+      <Auth />
     </>
   );
 }

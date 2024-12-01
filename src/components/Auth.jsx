@@ -41,7 +41,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center mt-10">
+    <div className="flex flex-col w-[250px] mx-8 mt-10">
       <input
         type="text"
         placeholder="Email..."

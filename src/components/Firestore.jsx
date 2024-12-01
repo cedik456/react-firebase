@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../config/firebase";
-import { getDocs, collection, addDoc, onSnapshot } from "firebase/firestore";
+import {
+  getDocs,
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 
 const Firestore = () => {
   const [movieList, setMovieList] = useState([]);
@@ -13,6 +21,9 @@ const Firestore = () => {
   // Collection
   const movieListCollectionRef = collection(db, "movies");
 
+  // Update Movie
+  const [updatedMovieTitle, setUpdatedMovieTitle] = useState("");
+
   // Use Snapshot for realtime data
   useEffect(() => {
     onSnapshot(movieListCollectionRef, (snapshot) => {
@@ -24,18 +35,39 @@ const Firestore = () => {
     });
   }, []);
 
+  // Add movie
   const submitMovie = async () => {
     try {
       addDoc(movieListCollectionRef, {
         title: title,
         releasedDate: releasedDate,
-        recievedOscar: receivedOscar,
+        receivedOscar: receivedOscar,
+        userId: auth?.currentUser?.uid,
       });
       setTitle("");
       setReleasedDate("");
       setReceivedOscar(false);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // Delete movie
+  const deleteMovie = async (id) => {
+    const movieDoc = doc(db, "movies", id);
+    await deleteDoc(movieDoc);
+  };
+
+  // Update movie title
+  const updateMovieTitle = async (id) => {
+    try {
+      const movieDoc = doc(db, "movies", id);
+      await updateDoc(movieDoc, {
+        title: updatedMovieTitle,
+      });
+      setUpdatedMovieTitle("");
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -75,15 +107,37 @@ const Firestore = () => {
         </button>
       </div>
 
-      <div className="w-[580px]">
+      <div className="w-full">
         {movieList.map((movie) => (
           <div
             key={movie.id}
-            className="flex gap-2 p-4 mb-2 border rounded shadow-md cursor-pointer "
+            className="flex items-center justify-between w-full gap-2 p-4 mb-2 border rounded shadow-md cursor-pointer "
           >
-            <h1>{movie.title}</h1>
-            <p> Date: {movie.releasedDate}</p>
-            <p>{movie.recievedOscar ? "Received an Oscar" : "No Oscar"}</p>
+            <div className="flex gap-5">
+              <h1>{movie.title}</h1>
+              <p> Date: {movie.releasedDate}</p>
+              <p>{movie.recievedOscar ? "Received an Oscar" : "No Oscar"}</p>
+              <button
+                onClick={() => deleteMovie(movie.id)}
+                className="px-4 py-2 text-white bg-red-500 border rounded-md "
+              >
+                Delete Movie
+              </button>
+            </div>
+            <div className="flex">
+              <input
+                type="text"
+                placeholder="New Title..."
+                className="px-4 mx-2 border rounded "
+                onChange={(e) => setUpdatedMovieTitle(e.target.value)}
+              />
+              <button
+                onClick={() => updateMovieTitle(movie.id)}
+                className="px-4 py-2 text-white bg-black border rounded"
+              >
+                Submit
+              </button>
+            </div>
           </div>
         ))}
       </div>
